@@ -2,24 +2,32 @@ package gov.nasa.jpf.symbc.veritesting.RangerDiscovery.InputOutput;
 
 import gov.nasa.jpf.symbc.veritesting.ast.def.*;
 import gov.nasa.jpf.symbc.veritesting.ast.visitors.AstMapVisitor;
-import gov.nasa.jpf.symbc.veritesting.ast.visitors.ExprVisitor;
-import za.ac.sun.cs.green.expr.Expression;
 
 import java.util.HashSet;
 
+//tracks a single input ssa variable to find its last definition, which is then considered to be the output
 public class LastSSAVisitor extends AstMapVisitor {
-    public HashSet<String> defVarsSet;
 
-    public LastSSAVisitor(ExprVisitor<Expression> exprVisitor, HashSet<String> defVarsSet) {
+    //this is the var we are trying to find its last def, will be updated with later names if found
+    private String interestingInVar;
+
+    public String getLastInterestingVar() {
+        return interestingInVar;
+    }
+
+    public LastSSAVisitor(LastSSAExpVisitor exprVisitor, String interestingInVar) {
         super(exprVisitor);
-        this.defVarsSet = defVarsSet;
+        this.interestingInVar = interestingInVar;
     }
 
     @Override
     public Stmt visit(AssignmentStmt a) {
-        if(defVarsSet.contains(a.lhs.toString()))
-            defVarsSet.remove(a.lhs.toString());
+        ((LastSSAExpVisitor) exprVisitor).setInterestingInVar(interestingInVar);
         eva.accept(a.rhs);
+        if (((LastSSAExpVisitor) exprVisitor).isFound()){ //if the interestingInVar was found as a use, then the definition becomes the new interestingInVar we will be looking for.
+            interestingInVar = a.lhs.toString();
+            ((LastSSAExpVisitor) exprVisitor).resetFound();
+        }
         return null;
     }
 
@@ -30,10 +38,6 @@ public class LastSSAVisitor extends AstMapVisitor {
         return null;
     }
 
-    @Override
-    public Stmt visit(IfThenElseStmt a) {
-        return null;
-    }
 
     @Override
     public Stmt visit(SkipStmt a) {
@@ -112,11 +116,10 @@ public class LastSSAVisitor extends AstMapVisitor {
     }
 
 
-    public static HashSet<String>  execute(Stmt dynStmt){
-        HashSet<String> defSet = new HashSet<>();
-        FstSSAExpVisitor fstSSAExpVisitor = new FstSSAExpVisitor(defSet);
-        LastSSAVisitor fstSSAVisitor = new LastSSAVisitor(fstSSAExpVisitor, defSet);
-        dynStmt.accept(fstSSAVisitor);
-        return fstSSAVisitor.defVarsSet;
+    public static String execute(Stmt dynStmt, String interestingInVar) {
+        LastSSAExpVisitor lastSSAExpVisitor = new LastSSAExpVisitor(interestingInVar);
+        LastSSAVisitor lastSSAVisitor = new LastSSAVisitor(lastSSAExpVisitor, interestingInVar);
+        dynStmt.accept(lastSSAVisitor);
+        return lastSSAVisitor.getLastInterestingVar();
     }
 }

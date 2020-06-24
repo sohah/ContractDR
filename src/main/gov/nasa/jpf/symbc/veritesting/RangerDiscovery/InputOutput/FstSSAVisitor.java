@@ -1,18 +1,16 @@
 package gov.nasa.jpf.symbc.veritesting.RangerDiscovery.InputOutput;
 
 import gov.nasa.jpf.symbc.veritesting.ast.def.*;
-import gov.nasa.jpf.symbc.veritesting.ast.transformations.Environment.DynamicRegion;
 import gov.nasa.jpf.symbc.veritesting.ast.visitors.AstMapVisitor;
 import gov.nasa.jpf.symbc.veritesting.ast.visitors.ExprVisitor;
 import za.ac.sun.cs.green.expr.Expression;
-import za.ac.sun.cs.green.expr.Variable;
 
 import java.util.HashSet;
 
-public class DefVisitor extends AstMapVisitor {
+public class FstSSAVisitor extends AstMapVisitor {
     public HashSet<String> defVarsSet;
 
-    public DefVisitor(ExprVisitor<Expression> exprVisitor, HashSet<String> defVarsSet) {
+    public FstSSAVisitor(ExprVisitor<Expression> exprVisitor, HashSet<String> defVarsSet) {
         super(exprVisitor);
         this.defVarsSet = defVarsSet;
     }
@@ -116,9 +114,9 @@ public class DefVisitor extends AstMapVisitor {
 
     public static HashSet<String>  execute(Stmt dynStmt){
         HashSet<String> defSet = new HashSet<>();
-        DefExpVisitor defExpVisitor = new DefExpVisitor(defSet);
-        DefVisitor defVisitor = new DefVisitor(defExpVisitor, defSet);
-        dynStmt.accept(defVisitor);
-        return defVisitor.defVarsSet;
+        FstSSAExpVisitor fstSSAExpVisitor = new FstSSAExpVisitor(defSet);
+        FstSSAVisitor fstSSAVisitor = new FstSSAVisitor(fstSSAExpVisitor, defSet);
+        dynStmt.accept(fstSSAVisitor);
+        return fstSSAVisitor.defVarsSet;
     }
 }

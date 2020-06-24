@@ -1,85 +1,71 @@
 package gov.nasa.jpf.symbc.veritesting.RangerDiscovery.InputOutput;
 
 import gov.nasa.jpf.symbc.veritesting.ast.def.*;
-import gov.nasa.jpf.symbc.veritesting.ast.transformations.Environment.DynamicRegion;
-import gov.nasa.jpf.symbc.veritesting.ast.visitors.ExprVisitor;
+import gov.nasa.jpf.symbc.veritesting.ast.visitors.ExprMapVisitor;
 import za.ac.sun.cs.green.expr.*;
 
 import java.util.HashSet;
 
-public class DefExpVisitor implements ExprVisitor {
+public class FstSSAExpVisitor extends ExprMapVisitor {
 
     private final HashSet<String> defVarsSet;
 
-    public DefExpVisitor(HashSet<String> defVarsSet) {
+    public FstSSAExpVisitor(HashSet<String> defVarsSet) {
         this.defVarsSet = defVarsSet;
     }
 
     @Override
-    public Object visit(IntConstant expr) {
+    public Expression visit(IntConstant expr) {
         return null;
     }
 
     @Override
-    public Object visit(IntVariable expr) {
+    public Expression visit(IntVariable expr) {
         defVarsSet.add(expr.toString());
         return null;
     }
 
     @Override
-    public Object visit(Operation expr) {
+    public Expression visit(RealConstant expr) {
         return null;
     }
 
     @Override
-    public Object visit(RealConstant expr) {
+    public Expression visit(RealVariable expr) {
         return null;
     }
 
     @Override
-    public Object visit(RealVariable expr) {
+    public Expression visit(StringConstantGreen expr) {
         return null;
     }
 
     @Override
-    public Object visit(StringConstantGreen expr) {
+    public Expression visit(StringVariable expr) {
+        return null;
+    }
+
+
+    @Override
+    public Expression visit(ArrayRefVarExpr expr) {
         return null;
     }
 
     @Override
-    public Object visit(StringVariable expr) {
-        return null;
-    }
-
-    @Override
-    public Object visit(IfThenElseExpr expr) {
-        return null;
-    }
-
-    @Override
-    public Object visit(ArrayRefVarExpr expr) {
-        return null;
-    }
-
-    @Override
-    public Object visit(WalaVarExpr expr) {
+    public Expression visit(WalaVarExpr expr) {
         defVarsSet.add(expr.toString());
         return null;
     }
 
     @Override
-    public Object visit(FieldRefVarExpr expr) {
+    public Expression visit(FieldRefVarExpr expr) {
         defVarsSet.add(expr.toString());
         return null;
     }
 
-    @Override
-    public Object visit(GammaVarExpr expr) {
-        return null;
-    }
 
     @Override
-    public Object visit(AstVarExpr expr) {
+    public Expression visit(AstVarExpr expr) {
         defVarsSet.add(expr.toString());
         return null;
     }
