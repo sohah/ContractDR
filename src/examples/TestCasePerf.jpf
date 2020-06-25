@@ -1,0 +1,21 @@
+target=TestCasePerf
+classpath=${jpf-symbc}/build/examples
+sourcepath=${jpf-symbc}/src/examples
+vm.storage.class=nil
+symbolic.debug=false
+
+symbolic.method=veritesting.test_case_gen.TestCasePerf.testingSymbolicFields(sym#sym)
+
+
+
+vm.storage.class=nil
+
+
+symbolic.dp=z3
+
+listener = .symbc.SymbolicListener
+jitAnalysis = true
+veritestingMode = 3
+performanceMode = false
+simplify = false
+

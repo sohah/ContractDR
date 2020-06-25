@@ -3,16 +3,16 @@
  * Administrator of the National Aeronautics and Space Administration.
  * All rights reserved.
  *
- * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
- *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and 
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
@@ -21,15 +21,9 @@ package gov.nasa.jpf.symbc;
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.PropertyListenerAdapter;
-import gov.nasa.jpf.vm.ChoiceGenerator;
-import gov.nasa.jpf.vm.ClassInfo;
-import gov.nasa.jpf.vm.Instruction;
-import gov.nasa.jpf.vm.LocalVarInfo;
-import gov.nasa.jpf.vm.MethodInfo;
-import gov.nasa.jpf.vm.StackFrame;
-import gov.nasa.jpf.vm.ThreadInfo;
-import gov.nasa.jpf.vm.Types;
-import gov.nasa.jpf.vm.VM;
+import gov.nasa.jpf.symbc.bytecode.NEW;
+import gov.nasa.jpf.symbc.heap.Helper;
+import gov.nasa.jpf.vm.*;
 
 import gov.nasa.jpf.jvm.bytecode.ARETURN;
 import gov.nasa.jpf.jvm.bytecode.DRETURN;
@@ -165,9 +159,26 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
         // }
     }
 
+    private void makeRefPrimitivesSymbolic(ElementInfo newObjRef, ThreadInfo currentThread) {
+        ClassInfo ci = newObjRef.getClassInfo();
+        FieldInfo[] iFields = ci.getInstanceFields();
+        Helper.initializeInstanceFields(iFields, newObjRef, "");
+    }
+
+
     @Override
     public void instructionExecuted(VM vm, ThreadInfo currentThread, Instruction nextInstruction,
             Instruction executedInstruction) {
+/*
+
+        if ((!vm.getSystemState().isIgnored()) && (executedInstruction instanceof NEW) && (executedInstruction.getMethodInfo().toString().contains("testingSymbolicFields"))) { // if this is a new object, just make it is primitive types symbolic
+            System.out.println("new object instruction has been executed.");
+            ElementInfo newObjRef = currentThread.getElementInfo(((NEW) executedInstruction).getNewObjectRef());
+
+            makeRefPrimitivesSymbolic(newObjRef, currentThread);
+            System.out.println("after new Instruction of " + executedInstruction);
+        }
+*/
 
         if (!vm.getSystemState().isIgnored()) {
             Instruction insn = executedInstruction;
@@ -285,11 +296,11 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
                                 pa.solve(pc, solver);
                             } else
                                 pc.solve();
-                            
+
                             if (!PathCondition.flagSolved) {
                                 return;
                             }
-                           
+
 
                             // after the following statement is executed, the pc loses its solution
 
@@ -370,12 +381,12 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
                              * pa.solve(pc,solver); } else pc.solve();
                              */
 
-                            
+
                               String pcString = pc.toString(); pcPair = new Pair<String,String>(pcString,returnString);
                               MethodSummary methodSummary = allSummaries.get(longName); Vector<Pair> pcs =
                               methodSummary.getPathConditions(); if ((!pcs.contains(pcPair)) &&
                               (pcString.contains("SYM"))) { methodSummary.addPathCondition(pcPair); }
-                              
+
                               if(allSummaries.get(longName)!=null) // recursive call longName = longName +
                               methodSummary.hashCode(); // differentiate the key for recursive calls
                               allSummaries.put(longName,methodSummary); if (SymbolicInstructionFactory.debugMode) {
