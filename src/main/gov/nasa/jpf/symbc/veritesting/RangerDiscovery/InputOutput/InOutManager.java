@@ -1,7 +1,13 @@
 package gov.nasa.jpf.symbc.veritesting.RangerDiscovery.InputOutput;
 
+import gov.nasa.jpf.symbc.numeric.SymbolicInteger;
 import gov.nasa.jpf.symbc.veritesting.RangerDiscovery.Config;
+import gov.nasa.jpf.symbc.veritesting.RangerDiscovery.DiscoverContract;
 import gov.nasa.jpf.symbc.veritesting.VeritestingUtil.Pair;
+import gov.nasa.jpf.util.ObjectList;
+import gov.nasa.jpf.vm.ElementInfo;
+import gov.nasa.jpf.vm.NamedFields;
+import gov.nasa.jpf.vm.StackFrame;
 import jkind.lustre.*;
 
 import java.util.ArrayList;
@@ -351,10 +357,26 @@ public class InOutManager {
 
     //entered by hand for now
     private void discoverFreeInputWBS() {
-        freeInput.add("pedal_1_SYMINT", NamedType.INT);
+
+        StackFrame sf = Config.ti.getTopFrame();
+        Object[] symbolicInputs = sf.getSlotAttrs();
+        int indexOfLastSym = 0;
+        for (int i = 0; i < symbolicInputs.length; i++) {
+            Object symInput = symbolicInputs[i];
+            if (symInput != null) indexOfLastSym = i;
+        }
+        for (int i = 0; i < indexOfLastSym; i++) {
+            Object symInput = symbolicInputs[i];
+            if (symInput != null) {
+                assert symInput instanceof SymbolicInteger;
+                freeInput.add(symbolicInputs[i].toString(), NamedType.INT);
+            }
+        }
+
+        /*freeInput.add("pedal_1_SYMINT", NamedType.INT);
         freeInput.add("autoBrake_2_SYMINT", NamedType.BOOL);
         freeInput.add("skid_3_SYMINT", NamedType.BOOL);
-
+*/
         /*if (freeInput.containsBool()) {
             Pair<ArrayList<VarDecl>, ArrayList<Equation>> conversionResult = freeInput.convertInput();
             typeConversionEq.addAll(conversionResult.getSecond());
@@ -366,16 +388,30 @@ public class InOutManager {
 // for the outputs of the sepc.
     //entered by hand for now
     private void discoverStateInputWBS() {
-        stateInput.add("WBS_Node_WBS_BSCU_SystemModeSelCmd_rlt_PRE_4_SYMINT", NamedType.INT);
+        for (ElementInfo ei : Config.objrefs) {
+            int fieldCount = ei.getClassInfo().getDeclaredInstanceFields().length;
+            for (int i = 0; i < fieldCount; i++) {
+                ObjectList.Iterator fieldAttrItr = ((NamedFields) (Config.objrefs.get(0).getFields())).fieldAttrIterator(i);
+                Object fieldAttr = fieldAttrItr.next();
+                stateInput.add(fieldAttr.toString(), NamedType.INT);
+            }
+        }
+
+        /*stateInput.add("WBS_Node_WBS_BSCU_SystemModeSelCmd_rlt_PRE_4_SYMINT", NamedType.INT);
         stateInput.add("WBS_Node_WBS_BSCU_rlt_PRE1_5_SYMINT", NamedType.INT);
         stateInput.add("WBS_Node_WBS_rlt_PRE2_6_SYMINT", NamedType.INT);
-
+*/
     }
 
     //entered by hand for now - order is important, needs to match in order of the input
     private void discoverStateOutputWBS() {
+        for (Pair<String, NamedType> stateIn : stateInput.varList) {
+            String lastSSA = LastSSAVisitor.execute(DiscoverContract.dynRegion.dynStmt, stateIn.getFirst());
+            stateOutput.add(lastSSA, NamedType.INT);
+            stateOutput.addInit(lastSSA, new IntExpr(0));
+        }
 
-        stateOutput.add(referenceObjectName + ".WBS_Node_WBS_BSCU_SystemModeSelCmd_rlt_PRE.1.3.2", NamedType.INT);
+        /*stateOutput.add(referenceObjectName + ".WBS_Node_WBS_BSCU_SystemModeSelCmd_rlt_PRE.1.3.2", NamedType.INT);
         stateOutput.addInit(referenceObjectName + ".WBS_Node_WBS_BSCU_SystemModeSelCmd_rlt_PRE.1.3.2", new IntExpr(0));
 
 
@@ -385,7 +421,7 @@ public class InOutManager {
 
         stateOutput.add(referenceObjectName + ".WBS_Node_WBS_rlt_PRE2.1.3.2", NamedType.INT);
         stateOutput.addInit(referenceObjectName + ".WBS_Node_WBS_rlt_PRE2.1.3.2", new IntExpr(0));
-
+*/
     }
 
 

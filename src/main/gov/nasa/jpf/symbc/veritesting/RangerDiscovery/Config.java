@@ -4,6 +4,8 @@ import gov.nasa.jpf.symbc.VeritestingListener;
 import gov.nasa.jpf.symbc.veritesting.RangerDiscovery.Statistics.AllMutationStatistics;
 import gov.nasa.jpf.symbc.veritesting.RangerDiscovery.mutation.MutationResult;
 import gov.nasa.jpf.symbc.veritesting.VeritestingUtil.Pair;
+import gov.nasa.jpf.vm.ElementInfo;
+import gov.nasa.jpf.vm.ThreadInfo;
 import jkind.lustre.Ast;
 import jkind.lustre.BoolExpr;
 import jkind.lustre.IntExpr;
@@ -25,6 +27,8 @@ public class Config {
     public static String folderName = "../src/DiscoveryExamples/";
     public static String symVarName;
     public static int lastMaxSteps; //this is the last maximum steps used in the last BMC
+    public static ThreadInfo ti;
+    public static ArrayList<ElementInfo> objrefs = new ArrayList<>();
 
     // atom synthesized
     static String tFileName;
@@ -75,7 +79,7 @@ public class Config {
     public static boolean evaluationMode = false;
     public static int timeOut = 600; //in seconds - time out of every jkind query
     public static int mutantTimeOut = 3600;  // in seconds time out for a mutant repair
-    public static boolean mac = false;
+    public static boolean mac = true;
 
     public static final int OUTERLOOP_MAXLOOPCOUNT = 5;
     public static final int MINIMALLOOP_MAXLOOPCOUNT = 30; //found 378 iteration, then we find a repair.

@@ -6,8 +6,6 @@ import gov.nasa.jpf.symbc.veritesting.RangerDiscovery.RepairScopeType;
 import gov.nasa.jpf.symbc.veritesting.RangerDiscovery.DiscoverContract;
 import gov.nasa.jpf.symbc.veritesting.RangerDiscovery.RepairMode;
 
-import static gov.nasa.jpf.symbc.veritesting.RangerDiscovery.Config.folderName;
-
 import com.ibm.wala.util.shrike.gotoTransformation.GoToTransformer;
 import gov.nasa.jpf.jvm.bytecode.IfInstruction;
 import gov.nasa.jpf.search.Search;
@@ -62,7 +60,7 @@ import java.util.concurrent.TimeUnit;
 
 import static gov.nasa.jpf.symbc.veritesting.ChoiceGenerator.SamePathOptimization.*;
 import static gov.nasa.jpf.symbc.veritesting.ChoiceGenerator.StaticBranchChoiceGenerator.*;
-import static gov.nasa.jpf.symbc.veritesting.RangerDiscovery.Config.mutationEnabled;
+import static gov.nasa.jpf.symbc.veritesting.RangerDiscovery.Config.*;
 import static gov.nasa.jpf.symbc.veritesting.RangerDiscovery.DiscoverContract.*;
 import static gov.nasa.jpf.symbc.veritesting.StaticRegionException.ExceptionPhase.INSTANTIATION;
 import static gov.nasa.jpf.symbc.veritesting.StaticRegionException.throwException;
@@ -686,7 +684,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         /*--------------- Discover Lustre Translation ---------------*/
         if (contractDiscoveryOn) {
             discoveryAttempted = true;
-            DiscoverContract.discoverLusterContract(dynRegion);
+            DiscoverContract.discoverLusterContract(ti, dynRegion);
             ti.getVM().getSystemState().setIgnored(true);
             return dynRegion;
         }
@@ -1028,10 +1026,10 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public void instructionExecuted(VM vm, ThreadInfo currentThread, Instruction nextInstruction, Instruction executedInstruction) {
         //TODO: generalize that to be used for any benchmark not jsut the ALARM.
 
-        if ((!vm.getSystemState().isIgnored()) && (executedInstruction instanceof NEW) && (executedInstruction.getMethodInfo().toString().contains("ALARM"))) { // if this is a new object, just make it is primitive types symbolic
+        if ((!vm.getSystemState().isIgnored()) && (executedInstruction instanceof NEW) && (executedInstruction.getMethodInfo().toString().contains("WBS"))) { // if this is a new object, just make it is primitive types symbolic
             System.out.println("new object instruction has been executed.");
             ElementInfo newObjRef = currentThread.getElementInfo(((NEW) executedInstruction).getNewObjectRef());
-
+            objrefs.add(newObjRef);
             makeRefPrimitivesSymbolic(newObjRef, currentThread);
             System.out.println("after new Insturction of " + executedInstruction);
         }

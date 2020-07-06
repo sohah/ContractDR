@@ -16,6 +16,7 @@ import gov.nasa.jpf.symbc.veritesting.RangerDiscovery.Queries.ARepair.synthesis.
 import gov.nasa.jpf.symbc.veritesting.RangerDiscovery.mutation.MutationType;
 import gov.nasa.jpf.symbc.veritesting.VeritestingUtil.Pair;
 import gov.nasa.jpf.symbc.veritesting.ast.transformations.Environment.DynamicRegion;
+import gov.nasa.jpf.vm.ThreadInfo;
 import jkind.JKindException;
 import jkind.api.results.JKindResult;
 import jkind.lustre.*;
@@ -70,7 +71,8 @@ public class DiscoverContract {
 
     /***** end of unused vars***/
 
-    public static final void discoverLusterContract(DynamicRegion dynRegion) {
+    public static final void discoverLusterContract(ThreadInfo ti, DynamicRegion dynRegion) {
+        Config.ti = ti;
         DiscoverContract.dynRegion = dynRegion;
         fillUserSynNodes();
         try {
