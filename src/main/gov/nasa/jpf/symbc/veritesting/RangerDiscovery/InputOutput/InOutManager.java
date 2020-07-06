@@ -49,11 +49,19 @@ public class InOutManager {
     //This is the state output of the class in the implementation.
     ContractOutput stateOutput = new ContractOutput();
 
+
     //This describes the output that is going to be validated with the specification, they are usually part of the
     // state but should NOT be mistaken as a stateOutput, a stateOutput are only those needed internally for R node
     // and are not validated by the spec, for those that needs to be  validated by the spec we call the
     // contractOutput and must be populated there.
+
+    //To identify contract output we rely on two important assumptions. First, the contract output is already defined in the spec
+    // definition, and secondly, the contract input and outputs are always the LAST variables in the stateInput and stateOutput
+    // lists. So when we try to popluate the contract output we use these above information, then we clear the stateInput and stateOutputs
+    //from any contract input and output fields, we can do that by removing them from the end of the list, since we know who many they are
+    //from the first assumptions and since they are always at the end of the stateInput and stateOutput lists from the second assumption.
     ContractOutput contractOutput = new ContractOutput();
+
 
     boolean isOutputConverted = false;
 
@@ -72,6 +80,7 @@ public class InOutManager {
     private String referenceObjectName_infusion_Outputs;
     private String referenceObjectName_infusion_localB;
     private String referenceObjectName_infusion_localDW;
+    private SpecInOutManager specInOutManager;
 
 
     public InOutManager() {
@@ -132,8 +141,9 @@ public class InOutManager {
     }
 
     //* IMPORTANT!!! the order of variables of state input should match those  of variables of the state output!!*//
-    public void discoverVars() {
+    public void discoverVars(SpecInOutManager tInOutManager) {
         setSymVarName();
+        this.specInOutManager = tInOutManager;
 
         if (Config.spec.equals("pad")) {
             discoverFreeInputPad();
@@ -343,6 +353,25 @@ public class InOutManager {
     // the method output of the implementation, instead it is the output of the to-be-created r_wrapper node.
 
     private void discoverContractOutputWBS() {
+        //defines that using the output defined for the spec
+        int specOutputSize = specInOutManager.getInOutput().size;
+        int implStateOutSize = stateOutput.varList.size();
+
+        for (int i = implStateOutSize - specOutputSize; i < implStateOutSize; i++) {
+            Pair<String, NamedType> outputPair = stateOutput.varList.get(i);
+            contractOutput.add(outputPair.getFirst(), outputPair.getSecond());
+//            contractOutput.addInit(outputPair.getFirst(), outputPair.getSecond() == NamedType.INT ? new IntExpr(0) : new BoolExpr(false));
+        }
+
+        //commented out since for now we have added contractInput to handle this case in the stateOutput, so we do no have to clear it here.
+        for (int i = 0; i < specOutputSize; i++) {
+            int currIndex = stateOutput.varList.size() - 1;
+            stateOutput.remove(currIndex); //remove last element as many times as the contract output of the spec
+            stateOutput.removeInit(currIndex);
+            stateInput.remove(currIndex); //remove last element as many times as the contract output of the spec
+        }
+
+/*
 
         contractOutput.add(referenceObjectName + ".Nor_Pressure.1.13.2", NamedType.INT);
 //        contractOutput.addInit(referenceObjectName + ".Nor_Pressure.1.13.2", new IntExpr(0));
@@ -352,6 +381,7 @@ public class InOutManager {
 
         contractOutput.add(referenceObjectName + ".Sys_Mode.1.5.2", NamedType.INT);
 //        contractOutput.addInit(referenceObjectName + ".Sys_Mode.1.5.2", new IntExpr(0));
+*/
 
     }
 
@@ -361,15 +391,26 @@ public class InOutManager {
         StackFrame sf = Config.ti.getTopFrame();
         Object[] symbolicInputs = sf.getSlotAttrs();
         int indexOfLastSym = 0;
+        boolean symVarFound = false; // to work around having the symVarAttr appearing twice in the stackslot, not sure why the duplication is happening, this is why this is a workaround rather than removing the double entry
         for (int i = 0; i < symbolicInputs.length; i++) {
             Object symInput = symbolicInputs[i];
-            if (symInput != null) indexOfLastSym = i;
+            if (symInput != null)
+                if (!symVarFound || !symInput.toString().contains("symVar")) {
+                    if (symInput.toString().contains("symVar"))
+                        symVarFound = true;
+                    indexOfLastSym = i;
+                }
         }
         for (int i = 0; i < indexOfLastSym; i++) {
             Object symInput = symbolicInputs[i];
             if (symInput != null) {
-                assert symInput instanceof SymbolicInteger;
-                freeInput.add(symbolicInputs[i].toString(), NamedType.INT);
+                char argType = sf.getMethodInfo().getSignature().charAt(i + 1);
+                if (argType == 'I')
+                    freeInput.add(symbolicInputs[i].toString(), NamedType.INT);
+                else if (argType == 'Z')
+                    freeInput.add(symbolicInputs[i].toString(), NamedType.BOOL);
+                else
+                    assert false : "unexpected type.Failing";
             }
         }
 
@@ -393,7 +434,12 @@ public class InOutManager {
             for (int i = 0; i < fieldCount; i++) {
                 ObjectList.Iterator fieldAttrItr = ((NamedFields) (Config.objrefs.get(0).getFields())).fieldAttrIterator(i);
                 Object fieldAttr = fieldAttrItr.next();
-                stateInput.add(fieldAttr.toString(), NamedType.INT);
+                String fieldType = ei.getClassInfo().getDeclaredInstanceFields()[i].getType();
+                NamedType namedType = fieldType.equals("int") ? NamedType.INT : NamedType.BOOL;
+                if (namedType == NamedType.BOOL)
+                    assert fieldType.equals("boolean");
+                //if (!contractInput.contains(fieldAttr.toString(), namedType)) //filtering out contractInput from being counted as a state
+                    stateInput.add(fieldAttr.toString(), namedType);
             }
         }
 
@@ -407,8 +453,14 @@ public class InOutManager {
     private void discoverStateOutputWBS() {
         for (Pair<String, NamedType> stateIn : stateInput.varList) {
             String lastSSA = LastSSAVisitor.execute(DiscoverContract.dynRegion.dynStmt, stateIn.getFirst());
-            stateOutput.add(lastSSA, NamedType.INT);
-            stateOutput.addInit(lastSSA, new IntExpr(0));
+            NamedType namedType = stateIn.getSecond();
+            stateOutput.add(lastSSA, namedType);
+            if (namedType == NamedType.INT)
+                stateOutput.addInit(lastSSA, new IntExpr(0));
+            else if (namedType == NamedType.BOOL)
+                stateOutput.addInit(lastSSA, new BoolExpr(false));
+            else
+                assert false : "unexpected type for stateoutput. Failing";
         }
 
         /*stateOutput.add(referenceObjectName + ".WBS_Node_WBS_BSCU_SystemModeSelCmd_rlt_PRE.1.3.2", NamedType.INT);

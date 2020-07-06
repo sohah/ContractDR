@@ -12,8 +12,8 @@ public class Contract {
     public final SpecInOutManager tInOutManager = new SpecInOutManager();
 
     Contract(){
-        rInOutManager.discoverVars();
         tInOutManager.discoverVars();
+        rInOutManager.discoverVars(tInOutManager);
     }
 
     /**

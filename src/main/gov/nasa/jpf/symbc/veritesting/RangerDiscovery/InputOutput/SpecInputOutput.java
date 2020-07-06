@@ -16,7 +16,15 @@ public class SpecInputOutput {
     public void add(String start_btn, NamedType type) {
         varList.add(new Pair<>(start_btn, type));
         size++;
+    }
 
+    public void remove(int i) {
+        size--;
+        varList.remove(i);
+    }
+
+    public String get(int i) {
+        return varList.get(i).getFirst();
     }
 
     public int indexOf(String varName) {

@@ -99,4 +99,13 @@ public class LastSSAExpVisitor extends ExprMapVisitor {
             found = true;
         return null;
     }
+
+
+    @Override
+    public Expression visit(GammaVarExpr expr) {
+//        eva.accept(expr.condition);
+        eva.accept(expr.thenExpr);
+        eva.accept(expr.elseExpr);
+        return null;
+    }
 }

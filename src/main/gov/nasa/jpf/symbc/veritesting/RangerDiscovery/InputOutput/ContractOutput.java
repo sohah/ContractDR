@@ -12,6 +12,10 @@ public class ContractOutput extends Output {
         varInitValuePair.add(new Pair<>(var, expr));
     }
 
+    public void removeInit(int index) {
+        varInitValuePair.remove(index);
+    }
+
     //This initial value was mainly added to support outputing the inital value as the first step, to align with the spec. If we moved towards unchecking the spec in the first step then this is no longer useful.
     public ArrayList<Pair<String, Expr>> varInitValuePair = new ArrayList<>();
 
@@ -27,6 +31,7 @@ public class ContractOutput extends Output {
         assert index < varInitValuePair.size();
         return varInitValuePair.get(index).getSecond();
     }
+
 
     /**
      * adds an initial value for a method output that needed not have an initial value.
