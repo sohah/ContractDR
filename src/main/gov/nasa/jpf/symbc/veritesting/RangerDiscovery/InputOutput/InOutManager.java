@@ -130,9 +130,10 @@ public class InOutManager {
     // this is now here to determine the name of the symVar, since in the new SPF they have adapted a new naming for
     // symbolic variables for which we need a dynamic mechanism to get the right name. This can be handled in a
     // later stage.
-    public static String setSymVarName() {
-        if (Config.spec.equals("wbs")) Config.symVarName = "symVar_7_SYMINT";
-        else if (Config.spec.equals("tcas")) Config.symVarName = "symVar_13_SYMINT";
+    public static String setSymVarName(String symVarName) {
+        if (Config.spec.equals("wbs")) {
+            Config.symVarName = symVarName;
+        } else if (Config.spec.equals("tcas")) Config.symVarName = "symVar_13_SYMINT";
         else if (Config.spec.equals("vote")) Config.symVarName = "symVar_6_SYMINT";
         else if (Config.spec.equals("gpca")) Config.symVarName = "symVar_212_SYMINT";
         else if (Config.spec.equals("infusion")) Config.symVarName = "symVar_103_SYMINT";
@@ -142,7 +143,7 @@ public class InOutManager {
 
     //* IMPORTANT!!! the order of variables of state input should match those  of variables of the state output!!*//
     public void discoverVars(SpecInOutManager tInOutManager) {
-        setSymVarName();
+
         this.specInOutManager = tInOutManager;
 
         if (Config.spec.equals("pad")) {
@@ -255,7 +256,7 @@ public class InOutManager {
             assert false;
         }
         wrapperOutputNum = contractOutput.size;
-
+//        setSymVarName(null);
         checkAsserts();
     }
 
@@ -396,8 +397,10 @@ public class InOutManager {
             Object symInput = symbolicInputs[i];
             if (symInput != null)
                 if (!symVarFound || !symInput.toString().contains("symVar")) {
-                    if (symInput.toString().contains("symVar"))
+                    if (symInput.toString().contains("symVar")) {
+                        setSymVarName(symInput.toString());
                         symVarFound = true;
+                    }
                     indexOfLastSym = i;
                 }
         }
@@ -439,7 +442,7 @@ public class InOutManager {
                 if (namedType == NamedType.BOOL)
                     assert fieldType.equals("boolean");
                 //if (!contractInput.contains(fieldAttr.toString(), namedType)) //filtering out contractInput from being counted as a state
-                    stateInput.add(fieldAttr.toString(), namedType);
+                stateInput.add(fieldAttr.toString(), namedType);
             }
         }
 
