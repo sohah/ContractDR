@@ -182,7 +182,7 @@ public class MinimalRepairDriver {
 
     private static Pair<Boolean, Boolean> runForallQuery(Program flatExtendedPgm, JKindResult synthesisResult, Program counterExamplePgm, MinimalRepairSynthesis tPrimeExistsQ) {
         boolean tighterRepairFound = false;
-        boolean canFindMoreTighterRepair = false;
+        boolean canFindMoreTighterRepair = true;
         Program forAllQ;
         long singleQueryTime2;
         String fileName;
