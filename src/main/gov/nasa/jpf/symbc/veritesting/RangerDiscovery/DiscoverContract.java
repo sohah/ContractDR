@@ -71,6 +71,10 @@ public class DiscoverContract {
 
     /***** end of unused vars***/
 
+    public static void updateRegion(DynamicRegion dynRegion){
+        DiscoverContract.dynRegion = dynRegion;
+    }
+
     public static final void discoverLusterContract(ThreadInfo ti, DynamicRegion dynRegion) {
         Config.ti = ti;
         DiscoverContract.dynRegion = dynRegion;

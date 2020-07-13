@@ -4,6 +4,7 @@ import gov.nasa.jpf.symbc.numeric.SymbolicInteger;
 import gov.nasa.jpf.symbc.veritesting.RangerDiscovery.Config;
 import gov.nasa.jpf.symbc.veritesting.RangerDiscovery.DiscoverContract;
 import gov.nasa.jpf.symbc.veritesting.VeritestingUtil.Pair;
+import gov.nasa.jpf.symbc.veritesting.ast.transformations.Environment.DynamicRegion;
 import gov.nasa.jpf.util.ObjectList;
 import gov.nasa.jpf.vm.ElementInfo;
 import gov.nasa.jpf.vm.NamedFields;
@@ -364,6 +365,10 @@ public class InOutManager {
 //            contractOutput.addInit(outputPair.getFirst(), outputPair.getSecond() == NamedType.INT ? new IntExpr(0) : new BoolExpr(false));
         }
 
+        //put the default values of the contract input in the dynRegion stmt.
+        DynamicRegion regionWithDefaultContractInput = PutDefaultValues.execute(stateInput.varList.subList(stateInput.varList.size()-specOutputSize, stateInput.varList.size()));
+        DiscoverContract.updateRegion(regionWithDefaultContractInput);
+
         //commented out since for now we have added contractInput to handle this case in the stateOutput, so we do no have to clear it here.
         for (int i = 0; i < specOutputSize; i++) {
             int currIndex = stateOutput.varList.size() - 1;
@@ -371,7 +376,6 @@ public class InOutManager {
             stateOutput.removeInit(currIndex);
             stateInput.remove(currIndex); //remove last element as many times as the contract output of the spec
         }
-
 /*
 
         contractOutput.add(referenceObjectName + ".Nor_Pressure.1.13.2", NamedType.INT);
