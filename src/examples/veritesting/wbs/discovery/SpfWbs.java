@@ -372,6 +372,11 @@ public class SpfWbs {
         //assert ((!(PedalPos > 3)) || ((Sys_Mode == 0) && (Alt_Pressure == 0)));
         /************ SH Mutation Results ends here **********/
 
+//        assert ( !(((PedalPos > 0) && (PedalPos <= 0)) && (! Skid))  || ((Alt_Pressure > 0) || (Nor_Pressure > 0)));
+//        assert (!((((PedalPos == -3) && (-3 == (-1))) || (PedalPos < 5)) && ((!Skid) && (PedalPos >= 1))) || ((Alt_Pressure > 0) || (Nor_Pressure > 0)));
+
+        assert (!(((PedalPos > 0) && (PedalPos <= 4)) && (! Skid)) || ((Alt_Pressure > 0) || (Nor_Pressure > 0)));
+
     }
 
 
